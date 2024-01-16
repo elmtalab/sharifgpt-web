@@ -76,3 +76,42 @@ class VideoAdmin(admin.ModelAdmin):
     list_filter = ('lesson',)
 
 
+
+
+from django.contrib import admin
+from .models import PaymentRecord
+
+@admin.register(PaymentRecord)
+class PaymentRecordAdmin(admin.ModelAdmin):
+    list_display = ('user', 'course', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__username', 'course__title')
+
+
+
+
+from django.contrib import admin
+from .models import Payment
+
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('track_id', 'order_id', 'amount', 'status', 'success', 'paid_at')
+    search_fields = ('track_id', 'order_id', 'status')
+    list_filter = ('status', 'success', 'paid_at')
+    readonly_fields = ('track_id', 'order_id', 'amount', 'status', 'success', 'paid_at',
+                       'card_number', 'ref_number', 'description', 'result_code', 'message')
+
+    # Optionally, you can add fieldsets for a more organized layout in the admin detail view
+    fieldsets = (
+        (None, {
+            'fields': ('track_id', 'order_id', 'amount', 'status', 'success')
+        }),
+        ('Payment Details', {
+            'fields': ('card_number', 'ref_number', 'description', 'result_code', 'message', 'paid_at')
+        }),
+    )
+
+    def has_add_permission(self, request, obj=None):
+        # Optionally, disable adding new Payments through admin
+        return False
+
+admin.site.register(Payment, PaymentAdmin)

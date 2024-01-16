@@ -4,6 +4,7 @@ from .views import RegisterView, LoginView  # Import DashboardView
 urlpatterns = [
     path('signupapi/', RegisterView.as_view(), name='signup_api'),
     path('login/', LoginView.as_view(), name='login'),
+    path('accounts/login/', LoginView.as_view(), name='login'),
     
     # ... include other app-specific urls here
 ]
