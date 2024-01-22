@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [
@@ -99,10 +100,20 @@ EMAIL_HOST_PASSWORD = 'your-email-password'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres',  # Database name
+        'USER': 'root',  # Database user
+        'PASSWORD': 'mHq9aWILw7ZWnTLvlYSx9DuP',  # Database password
+        'HOST': 'damavand.liara.cloud',  # Public Database host
+        'PORT': '31723',  # Public Database port
     }
 }
+
+
+
+
+
+
 AUTH_USER_MODEL = 'API.CustomUser'
 
 

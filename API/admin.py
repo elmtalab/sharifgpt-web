@@ -1,23 +1,23 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser,Video
+from .models import CustomUser, Video
 from .forms import CustomUserCreationForm, CustomUserChangeForm
 
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = CustomUser
-    # Make sure 'username' is included if you want it displayed in the admin list
-    list_display = ['email', 'username', 'first_name', 'last_name', 'is_staff',]
-    # Updated fieldsets - make sure to include any additional fields you have added
+    list_display = ['email', 'phone_number', 'first_name', 'last_name', 'is_staff']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Personal info', {'fields': ('phone_number', 'first_name', 'last_name')}),
         ('Permissions', {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
         }),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
-    ) 
+    )
+    # Update this if you want a specific ordering in the admin list view
+    ordering = ['email']
 
 admin.site.register(CustomUser, CustomUserAdmin)
 
@@ -115,3 +115,115 @@ class PaymentAdmin(admin.ModelAdmin):
         return False
 
 admin.site.register(Payment, PaymentAdmin)
+
+
+
+from django.contrib import admin
+from .models import Event, Booking
+from django.utils.text import slugify
+
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('title', 'date', 'location', 'price', 'discount')
+    list_filter = ('date', 'location')
+    search_fields = ('title', 'description', 'location')
+    prepopulated_fields = {'slug': ('title',)}
+
+admin.site.register(Event, EventAdmin)
+
+
+
+class BookingAdmin(admin.ModelAdmin):
+    list_display = ('user', 'event', 'quantity', 'total_price', 'purchase_date')
+    list_filter = ('purchase_date', 'event')
+    search_fields = ('user__email', 'event__title')
+
+admin.site.register(Booking, BookingAdmin)
+
+
+
+from django.contrib import admin
+from .models import Speaker
+
+class SpeakerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'title')
+    search_fields = ('name', 'title')
+    list_filter = ('title',)
+
+admin.site.register(Speaker, SpeakerAdmin)
+
+from django.contrib import admin
+from .models import EventPaymentRecord
+
+class EventPaymentRecordAdmin(admin.ModelAdmin):
+    list_display = ('user', 'event', 'status', 'payment_method', 'amount_paid', 'created_at')
+    list_filter = ('status', 'payment_method', 'created_at')
+    search_fields = ('user__username', 'event__title', 'track_id')
+    readonly_fields = ('created_at',)
+
+    # If you want to customize the form displayed when editing/creating a record,
+    # you can use the 'fields' attribute.
+    # fields = ('user', 'event', 'status', 'payment_method', 'amount_paid', 'track_id', 'payment_message', 'error_message', 'created_at')
+
+    # If you have a lot of records and want to optimize the performance of your admin interface,
+    # you can use the 'raw_id_fields' to use an input box instead of a dropdown.
+    # raw_id_fields = ('user', 'event',)
+
+admin.site.register(EventPaymentRecord, EventPaymentRecordAdmin)
+
+
+
+from django.contrib import admin
+from .models import EventCategory
+
+@admin.register(EventCategory)
+class EventCategoryAdmin(admin.ModelAdmin):
+    list_display = ('title', 'order')
+    ordering = ('order', 'title')  # How items are ordered in the admin list view
+
+
+from django.contrib import admin
+from .models import AIProductImage
+
+
+from django.contrib import admin
+from .models import AIProduct, AIProductFeature, AIProductReview
+
+class AIProductImageInline(admin.TabularInline):
+    model = AIProductImage
+    extra = 1
+
+class AIProductAdmin(admin.ModelAdmin):
+    list_display = ['name', 'price', 'category']
+    search_fields = ['name', 'category__name']
+    prepopulated_fields = {'slug': ('name',)}
+    inlines = [AIProductImageInline]
+
+admin.site.register(AIProduct, AIProductAdmin)
+
+class AIProductFeatureAdmin(admin.ModelAdmin):
+    list_display = ['name', 'product']
+    search_fields = ['name', 'product__name']
+
+admin.site.register(AIProductFeature, AIProductFeatureAdmin)
+
+class AIProductReviewAdmin(admin.ModelAdmin):
+    list_display = ['product', 'user', 'rating', 'review_date']
+    search_fields = ['product__name', 'user__email']
+
+admin.site.register(AIProductReview, AIProductReviewAdmin)
+
+
+# /path/to/admin.py
+
+from django.contrib import admin
+from .models import UserAIAccount
+
+
+
+@admin.register(UserAIAccount)
+class UserAIAccountAdmin(admin.ModelAdmin):
+    list_display = ('user', 'ai_product', 'username', 'password')
+    list_filter = ('ai_product',)
+    search_fields = ('user__username', 'ai_product__name', 'username')
+
+
