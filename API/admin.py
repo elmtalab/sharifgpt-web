@@ -125,7 +125,7 @@ from django.utils.text import slugify
 class EventAdmin(admin.ModelAdmin):
     list_display = ('title', 'date', 'location', 'price', 'discount')
     list_filter = ('date', 'location')
-    search_fields = ('title', 'description', 'location')
+    search_fields = ('title', 'description','lessons', 'location')
     prepopulated_fields = {'slug': ('title',)}
 
 admin.site.register(Event, EventAdmin)

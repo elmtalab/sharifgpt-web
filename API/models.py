@@ -30,6 +30,7 @@ class Event(models.Model):
     slug = models.SlugField(unique=True, blank=False)
     category = models.ForeignKey(EventCategory, related_name='events', on_delete=models.CASCADE, null= True)
     description = models.TextField()
+    lessons = models.TextField(null= True)
     date = models.DateTimeField()
     location = models.CharField(max_length=200)
     speakers = models.ManyToManyField('Speaker', related_name='events')

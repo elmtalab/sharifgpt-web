@@ -264,7 +264,8 @@ def checkout_success(request, payment_record_id):
     # Retrieve the payment record and the associated course
     payment_record = get_object_or_404(PaymentRecord, id=payment_record_id)
     course = get_object_or_404(Course, pk=payment_record.course.pk)
-
+    enrollment = Enrollment.objects.create(user=request.user, course=course)
+    enrollment.save()
     # Format the date and price
     order_number = payment_record.id
     order_date = payment_record.created_at.strftime('%Y/%m/%d')
@@ -981,19 +982,19 @@ from django.utils import timezone
 from .models import AIProduct, PaymentRecord
 
 
-@login_required
+
 def buy_ai_product(request, ai_product_id):
     """
     View to handle AI product purchase and initiate the payment process.
     """
     ai_product = get_object_or_404(AIProduct, id=ai_product_id)
     price = ai_product.price  # Assuming price is the total price to pay
-    payment_record = None
+    
     try:
         
         # Initiate the payment process
         payment_response = make_payment("65a14466c5d2cb001d8d45ce", int(price), "http://sharifgpt.com/payment-callback-ai-account/")
-        print(payment_response)
+        
         payment_response = process_payment_response(payment_response)
 
         # Create a payment record
@@ -1087,6 +1088,7 @@ def checkout_ai_account(request):
     elif request.method == 'POST':
         payment_record = None
         with transaction.atomic():
+            payment_record = None
             try:
                 # Extract form data
                 firstName = request.POST.get('firstName', '').strip()
@@ -1095,37 +1097,49 @@ def checkout_ai_account(request):
                 email = request.POST.get('email', '').strip()
                 payment_method = request.POST.get('payment_method', '').strip()
 
+                print("Form Data:", firstName, lastName, phone, email, payment_method)
+
                 # Validate form data
                 if not all([firstName, lastName, phone, email]):
-                    raise ValidationError('All required fields must be filled out.')
+                    print("dfkbgjfhjfgb")
+                    raise ValueError('All required fields must be filled.')
 
-                # Check if user exists
-                user = User.objects.filter(Q(email=email) | Q(phone_number=phone)).first()
-                if not user:
-                    # Create new user if it does not exist
-                    user = User.objects.create_user(
+                # Check if user exists or create new user
+                user = CustomUser.objects.filter(Q(email=email) | Q(phone_number=phone)).first()
+                if user:
+                    # User exists, check if the names and email match
+                    if user.first_name != firstName or user.last_name != lastName or user.email != email:
+                        # For security, don't give specifics - just say a match couldn't be found
+                        # TODO user give different information than what he really have
+                        # it should throw out errors
+                        pass
+                else:
+                    # Create new user
+                    user = CustomUser.objects.create_user(
                         email=email,
                         phone_number=phone,
                         first_name=firstName,
                         last_name=lastName
                     )
                     # Set a random password (or your own logic)
-                    user.set_password(User.objects.make_random_password())
+                    user.set_password(str(random.randint(100000, 99999999)))
                     user.save()
-                else:
-                    # Here you can handle if the user exists but the names do not match.
-                    # For now, we'll assume they match and proceed.
-                    # You may want to log in the user or handle it differently.
-                    pass
 
                 # Authenticate and login the user
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-                
-                # Initiate the payment process and create a payment record
+                # Create a payment record
+
+            
+                # Initiate the payment process
                 amount_paid = int(final_price)
-                payment_response = make_payment("65a14466c5d2cb001d8d45ce", int(amount_paid), "http://sharifgpt.com/payment-callback-ai-account/")
+                print("here1")
+                payment_response = make_payment("65a14466c5d2cb001d8d45ce", amount_paid, "http://sharifgpt.com/payment-callback-ai-account/")
+
+                print("here2")
                 payment_response = process_payment_response(payment_response)
+
+
                 payment_record = AIAccountPaymentRecord.objects.create(
                     user=user,
                     product=ai_account,
